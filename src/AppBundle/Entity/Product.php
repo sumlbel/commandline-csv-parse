@@ -234,32 +234,32 @@ class Product
     {
         return $this->stmTimeStamp;
     }
-    
-	public function getStock() 
-	{
-		return $this->stock;
-	}
-	
-	public function setStock($stock) 
-	{
-		$this->stock = $stock;
-		return $this;
-	}
-	
-	public function getPrice() 
-	{
-		return $this->price;
-	}
-	
-	public function setPrice($price) 
-	{
-		$this->price = $price;
-		return $this;
-	}
+
+    public function getStock()
+    {
+        return $this->stock;
+    }
+
+    public function setStock($stock)
+    {
+        $this->stock = $stock;
+        return $this;
+    }
+
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    public function setPrice($price)
+    {
+        $this->price = $price;
+        return $this;
+    }
     
     public function __construct()
     {
-    	$this->setStmTimeStamp(new \DateTime());
+        $this->setStmTimeStamp(new \DateTime());
     }
-	
 }
+
