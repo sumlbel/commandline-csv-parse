@@ -15,6 +15,6 @@ services:
             class:        AppBundle\Service\AlterEntities
             arguments:    [ '@doctrine.orm.entity_manager' ]
 
-    app.products_from_csv:
-            class:        AppBundle\Service\ProductsFromCsv
-            arguments:    [ '@app.csv_parser', '@app.alter_entities' ]
+    app.logger:
+            class:        AppBundle\Service\Logger
+            arguments:    [  ]

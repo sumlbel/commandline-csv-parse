@@ -25,9 +25,27 @@ class CsvParseCommand extends ContainerAwareCommand
             );
     }
 
+    /**
+     * Runs script, which parsing csv file
+     * and making changes to database(not in test mode)
+     * */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $productsFromCsv = $this->getContainer()->get('app.products_from_csv');
-        $productsFromCsv->run($input, $output);
+        $parser = $this->getContainer()->get('app.csv_parser');
+        $alter = $this->getContainer()->get('app.alter_entities');
+        $logger = $this->getContainer()->get('app.logger');
+
+        $file = new \SplFileObject($input->getArgument('file_path'));
+        $products = $parser->parse($file);
+
+        if ($input->getOption('test')) {
+            $output->writeln(
+                'Running in test mode. No changes will be made in database.'
+            );
+        } else {
+            $alter->flushChanges($products->getCorrect());
+        }
+
+        $logger->logWork($output, $products);
     }
 }

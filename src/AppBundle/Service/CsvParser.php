@@ -2,6 +2,7 @@
 
 namespace AppBundle\Service;
 
+use AppBundle\Additional\ParsedProducts;
 use Ddeboer\DataImport\Reader\CsvReader;
 
 class CsvParser
@@ -13,34 +14,43 @@ class CsvParser
      *
      * @return array
      */
-    public function splitProducts($file): array
+    public function parse($file): ParsedProducts
     {
         $reader = new CsvReader($file, ',');
         $reader->setHeaderRowNumber(0);
 
-        $products = array(
-            'correct' => array(),
-            'skipping' => array(),
-            'countProcessed' => 0
-        );
+        $products = $this->splitProducts($reader);
+
+        return $products;
+    }
+
+    /**
+     * @param $reader
+     * @return ParsedProducts
+     */
+    public function splitProducts($reader): ParsedProducts
+    {
+        $products = new ParsedProducts();
 
         foreach ($reader as $line) {
             $productCost = floatval($line['Cost in GBP']);
             $productKey = $line['Product Code'];
             if ($productCost < 1000) {
                 if ($productCost > 5 || intval($line['Stock']) > 10) {
-                    $products['correct'][$productKey] = $line;
-                    $products['countProcessed']++;
+                    $products->addCorrect($productKey, $line);
+                    $products->increaseCount(1);
                 }
             } else {
-                $products['skipping'][$productKey] = $line;
+                $products->addSkipping($productKey, $line);
             }
         }
-        $products['skipping'] = array_merge(
-            $reader->getErrors(),
-            $products['skipping']
+        $products->setSkipping(
+            array_merge(
+                $reader->getErrors(),
+                $products->getSkipping()
+            )
         );
-        $products['countProcessed'] += count($products['skipping']);
+        $products->increaseCount(count($products->getSkipping()));
 
         return $products;
     }
