@@ -7,3 +7,14 @@ services:
 #    service_name:
 #        class: AppBundle\Directory\ClassName
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
+    app.csv_parser:
+        class:        AppBundle\Service\CsvParser
+        arguments:    [ ]
+
+    app.alter_entities:
+            class:        AppBundle\Service\AlterEntities
+            arguments:    [ '@doctrine.orm.entity_manager' ]
+
+    app.products_from_csv:
+            class:        AppBundle\Service\ProductsFromCsv
+            arguments:    [ '@app.csv_parser', '@app.alter_entities' ]
