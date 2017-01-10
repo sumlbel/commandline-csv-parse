@@ -68,7 +68,7 @@ class AlterEntities
         $duplicate->setStock($product->getStock());
         $duplicate->setPrice($product->getPrice());
         $duplicate->setDtmdiscontinued($product->getDtmDiscontinued());
+        $duplicate->setStmTimeStamp($product->getStmTimeStamp());
         return $duplicate;
     }
 }
-

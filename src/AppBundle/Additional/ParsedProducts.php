@@ -72,15 +72,13 @@ class ParsedProducts
     /**
      * Add one set of product data to correct array.
      *
-     * @param string  $productCode Product code
-     * (have to be unique for different products)
-     * @param Product $product     Product object with correct data
+     * @param Product $product Product object with correct data
      *
      * @return void
      */
-    public function addCorrect(string $productCode, Product $product)
+    public function addCorrect(Product $product)
     {
-        $this->correct[$productCode] = $product;
+        $this->correct[$product->getStrProductCode()] = $product;
     }
 
     /**

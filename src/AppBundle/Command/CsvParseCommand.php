@@ -23,11 +23,19 @@ class CsvParseCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this->setName('demo:parseCSV')
+            ->setHelp(
+                'Script, which validate and parse *.csv file '.
+                'with products information, put correct ones in database'.PHP_EOL.
+                'Correct *.csv file should contain headers such: '.PHP_EOL.
+                'Product Code, Product Name, Product Description, '.
+                'Stock, Cost in GBP, Discontinued. '.PHP_EOL.
+                'All fields should be separated by comma'
+            )
             ->addOption(
                 'test',
                 null,
                 InputOption::VALUE_NONE,
-                'Perform everything, but not insert the data into the database'
+                'Perform everything, but not insert products into the database'
             )
             ->addArgument(
                 'file_path',
@@ -47,10 +55,10 @@ class CsvParseCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $validator = $this->getContainer()->get('app.validator');
         $parser = $this->getContainer()->get('app.csv_parser');
         $alter = $this->getContainer()->get('app.alter_entities');
         $logger = $this->getContainer()->get('app.logger');
-        $validator = $this->getContainer()->get('app.validator');
 
         $reader = $validator->validate($input->getArgument('file_path'));
         if (!$validator->isValid()) {
@@ -70,4 +78,3 @@ class CsvParseCommand extends ContainerAwareCommand
         }
     }
 }
-

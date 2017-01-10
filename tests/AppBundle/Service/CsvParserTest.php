@@ -45,7 +45,6 @@ class CsvParserTest extends \PHPUnit_Framework_TestCase
      * Test creation of new product
      *
      * @covers CsvParser::setNewProduct()
-     * @covers CsvParser::setProductData()
      *
      * @return void
      */

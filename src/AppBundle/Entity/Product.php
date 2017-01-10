@@ -15,15 +15,19 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Product
 {
     /**
+     * Automatically generated id
+     *
      * @var integer
      *
-     * @ORM\Column(name="intProductDataId", type="integer", nullable=false)
+     * @ORM\Column (name="intProductDataId", type="integer", nullable=false)
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $intProductDataId;
 
     /**
+     * Product name
+     *
      * @var string
      *
      * @ORM\Column(name="strProductName", type="string", length=50, nullable=false)
@@ -31,6 +35,8 @@ class Product
     private $strProductName;
 
     /**
+     * Product description
+     *
      * @var string
      *
      * @ORM\Column(name="strProductDesc", type="string", length=255, nullable=false)
@@ -38,6 +44,8 @@ class Product
     private $strProductDesc;
 
     /**
+     * Product code
+     *
      * @var string
      *
      * @ORM\Column(name="strProductCode",
@@ -46,6 +54,8 @@ class Product
     private $strProductCode;
 
     /**
+     * Date and time of the addition of the product
+     *
      * @var \DateTime
      *
      * @ORM\Column(name="dtmAdded", type="datetime", nullable=true)
@@ -53,6 +63,8 @@ class Product
     private $dtmAdded;
 
     /**
+     * The date and time when the product was discontinued
+     *
      * @var \DateTime
      *
      * @ORM\Column(name="dtmDiscontinued", type="datetime", nullable=true)
@@ -67,6 +79,8 @@ class Product
     private $stmTimeStamp;
 
     /**
+     * Date and time of the last changes of the product
+     *
      * @var integer
      *
      * @ORM\Column(name="stock", type="integer")
@@ -74,6 +88,8 @@ class Product
     private $stock;
 
     /**
+     * Product price
+     *
      * @var float
      *
      * @ORM\Column(name="price", type="float")
@@ -95,7 +111,7 @@ class Product
     /**
      * Set strProductName
      *
-     * @param string $strProductName
+     * @param string $strProductName Product name
      *
      * @return Product
      */
@@ -119,7 +135,7 @@ class Product
     /**
      * Set strProductDesc
      *
-     * @param string $strProductDesc
+     * @param string $strProductDesc Product description
      *
      * @return Product
      */
@@ -143,7 +159,7 @@ class Product
     /**
      * Set strProductCode
      *
-     * @param string $strProductCode
+     * @param string $strProductCode Product code
      *
      * @return Product
      */
@@ -167,7 +183,7 @@ class Product
     /**
      * Set dtmAdded
      *
-     * @param \DateTime $dtmAdded
+     * @param \DateTime $dtmAdded \DateTime of the product addition
      *
      * @return Product
      */
@@ -191,7 +207,7 @@ class Product
     /**
      * Set dtmDiscontinued
      *
-     * @param \DateTime $dtmDiscontinued
+     * @param \DateTime $dtmDiscontinued \DateTime of product became discontinued
      *
      * @return Product
      */
@@ -215,7 +231,7 @@ class Product
     /**
      * Set stmTimeStamp
      *
-     * @param \DateTime $stmTimeStamp
+     * @param \DateTime $stmTimeStamp \DateTime of last changes
      *
      * @return Product
      */
@@ -249,7 +265,7 @@ class Product
     /**
      * Set stock
      *
-     * @param int $stock
+     * @param int $stock Number of products in stock
      *
      * @return $this
      */
@@ -272,7 +288,7 @@ class Product
     /**
      * Set price in GBP
      *
-     * @param float $price
+     * @param float $price Price value
      *
      * @return $this
      */
@@ -287,7 +303,6 @@ class Product
      */
     public function __construct()
     {
-        $this->setStmTimeStamp(new \DateTime());
+        $this->setDtmAdded(new \DateTime());
     }
 }
-

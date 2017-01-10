@@ -27,10 +27,9 @@ class CsvParser
         $products = new ParsedProducts();
 
         foreach ($reader as $line) {
-            $productKey = $line['Product Code'];
             if ($this->isAcceptable($line)) {
                 $product = $this->setNewProduct($line);
-                $products->addCorrect($productKey, $product);
+                $products->addCorrect($product);
                 $products->increaseCount(1);
             } else {
                 $products->addSkipping($line);
@@ -61,26 +60,12 @@ class CsvParser
         }
         $product = new Product();
         $product->setStrproductcode($productData['Product Code']);
-        $product = $this->setProductData($product, $productData);
-        return $product;
-    }
-
-    /**
-     * Set data of existing product
-     *
-     * @param Product $product     Product object
-     * @param array   $productData Array with product data
-     *
-     * @return Product
-     */
-    protected function setProductData(Product $product, $productData)
-    {
         $product->setStrproductname($productData['Product Name']);
         $product->setStrproductdesc($productData['Product Description']);
         $product->setStock(intval($productData['Stock']));
         $product->setPrice(floatval($productData['Cost in GBP']));
         $dateTime = new \DateTime();
-        $product->setDtmadded($dateTime);
+        $product->setStmTimeStamp($dateTime);
         if ($productData['Discontinued'] === 'yes') {
             $product->setDtmdiscontinued($dateTime);
         }
