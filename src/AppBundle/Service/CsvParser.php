@@ -5,12 +5,17 @@ namespace AppBundle\Service;
 use AppBundle\Additional\ParsedProducts;
 use Ddeboer\DataImport\Reader\CsvReader;
 
+/**
+ * Class CsvParser
+ *
+ * @package AppBundle\Service
+ */
 class CsvParser
 {
     /**
-     * Splitting products into correct, skipping and count entries
+     * Split products into correct, skipping and count entries
      *
-     * @param CsvReader $reader
+     * @param \SplFileObject $file \SplFileObject object of *.csv file
      *
      * @return array
      */
@@ -25,7 +30,12 @@ class CsvParser
     }
 
     /**
-     * @param $reader
+     * Divide data lines from reader into correct products,
+     * skipping because of errors or according to business logic
+     * and counts processed items
+     *
+     * @param CsvReader $reader CsvReader object
+     *
      * @return ParsedProducts
      */
     public function splitProducts($reader): ParsedProducts
@@ -41,7 +51,7 @@ class CsvParser
                     $products->increaseCount(1);
                 }
             } else {
-                $products->addSkipping($productKey, $line);
+                $products->addSkipping($line);
             }
         }
         $products->setSkipping(

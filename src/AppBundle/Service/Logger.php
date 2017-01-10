@@ -6,14 +6,19 @@ use AppBundle\Additional\ParsedProducts;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
+/**
+ * Class Logger
+ *
+ * @package AppBundle\Service
+ */
 class Logger
 {
 
     /**
-     * Logging work to Output Interface
+     * Log work to Output Interface
      *
-     * @param OutputInterface $output
-     * @param ParsedProducts           $products
+     * @param OutputInterface $output   OutputInterface object
+     * @param ParsedProducts  $products ParsedProducts object
      *
      * @return void
      */

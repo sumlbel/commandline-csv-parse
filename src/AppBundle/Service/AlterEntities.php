@@ -5,15 +5,38 @@ namespace AppBundle\Service;
 use Doctrine\Common\Persistence\ObjectManager;
 use AppBundle\Entity\Product;
 
+/**
+ * Class AlterEntities
+ *
+ * @package AppBundle\Service
+ */
 class AlterEntities
 {
+    /**
+     * Entity manager
+     *
+     * @var ObjectManager
+     */
     protected $em;
 
+    /**
+     * AlterEntities constructor.
+     *
+     * @param ObjectManager $em ObjectManager object
+     */
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
     }
 
+    /**
+     * Flush changes to database
+     *
+     * @param array $correctProducts An array of products,
+     * that can be correctly added
+     *
+     * @return void
+     */
     public function flushChanges($correctProducts)
     {
         $em = $this->em;
@@ -32,13 +55,29 @@ class AlterEntities
         $em->flush();
     }
 
-    public function setNewProduct($productData) {
+    /**
+     * Set new product from product data array
+     *
+     * @param array $productData Array with product data
+     *
+     * @return Product
+     */
+    public function setNewProduct($productData)
+    {
         $product = new Product();
         $product->setStrproductcode($productData['Product Code']);
         $product = $this->setProductData($product, $productData);
         return $product;
     }
 
+    /**
+     * Set data of existing product
+     *
+     * @param Product $product     Product object
+     * @param array   $productData Array with product data
+     *
+     * @return Product
+     */
     public function setProductData(Product $product, $productData)
     {
         $product->setStrproductname($productData['Product Name']);

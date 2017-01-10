@@ -40,7 +40,8 @@ class Product
     /**
      * @var string
      *
-     * @ORM\Column(name="strProductCode", type="string", length=10, nullable=false, unique=true)
+     * @ORM\Column(name="strProductCode",
+     *     type="string", length=10, nullable=false, unique=true)
      */
     private $strProductCode;
 
@@ -235,28 +236,55 @@ class Product
         return $this->stmTimeStamp;
     }
 
+    /**
+     * Get stock
+     *
+     * @return int
+     */
     public function getStock()
     {
         return $this->stock;
     }
 
+    /**
+     * Set stock
+     *
+     * @param int $stock
+     *
+     * @return $this
+     */
     public function setStock($stock)
     {
         $this->stock = $stock;
         return $this;
     }
 
+    /**
+     * Get price in GBP
+     *
+     * @return float
+     */
     public function getPrice()
     {
         return $this->price;
     }
 
+    /**
+     * Set price in GBP
+     *
+     * @param float $price
+     *
+     * @return $this
+     */
     public function setPrice($price)
     {
         $this->price = $price;
         return $this;
     }
-    
+
+    /**
+     * Product constructor.
+     */
     public function __construct()
     {
         $this->setStmTimeStamp(new \DateTime());

@@ -7,8 +7,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 
+/**
+ * Class CsvParseCommand
+ *
+ * @package AppBundle\Command
+ */
 class CsvParseCommand extends ContainerAwareCommand
 {
+    /**
+     * Configuration of script options and arguments
+     *
+     * @return void
+     */
     protected function configure()
     {
         $this->setName('demo:parseCSV')
@@ -26,9 +36,14 @@ class CsvParseCommand extends ContainerAwareCommand
     }
 
     /**
-     * Runs script, which parsing csv file
+     * Run script, which parsing csv file
      * and making changes to database(not in test mode)
-     * */
+     *
+     * @param InputInterface  $input  InputInterface object
+     * @param OutputInterface $output OutputInterface object
+     *
+     * @return void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $parser = $this->getContainer()->get('app.csv_parser');
@@ -49,3 +64,4 @@ class CsvParseCommand extends ContainerAwareCommand
         $logger->logWork($output, $products);
     }
 }
+

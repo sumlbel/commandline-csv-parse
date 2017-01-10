@@ -15,10 +15,14 @@ class CsvParserTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
+     * Test parsing correct csv file
+     *
      * @covers CsvParser::parse()
      * @covers CsvParser::splitProducts()
+     *
+     * @return void
      */
-    public function testProductCreation()
+    public function testParsingCorrectCsv()
     {
         $file = new \SplFileObject('app/Resources/test.csv');
 

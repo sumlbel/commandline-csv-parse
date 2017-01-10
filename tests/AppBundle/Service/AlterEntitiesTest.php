@@ -9,8 +9,12 @@ use Doctrine\Common\Persistence\ObjectManager;
 class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Test creation of new product
+     *
      * @covers AlterEntities::setNewProduct()
      * @covers AlterEntities::setProductData()
+     *
+     * @return void
      */
     public function testProductCreation()
     {
@@ -31,9 +35,15 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
         );
         $product = $alterEntities->setNewProduct($productData);
 
-        $this->assertEquals($productData['Product Code'], $product->getStrProductCode());
-        $this->assertEquals($productData['Product Name'], $product->getStrProductName());
-        $this->assertEquals($productData['Product Description'], $product->getStrProductDesc());
+        $this->assertEquals(
+            $productData['Product Code'], $product->getStrProductCode()
+        );
+        $this->assertEquals(
+            $productData['Product Name'], $product->getStrProductName()
+        );
+        $this->assertEquals(
+            $productData['Product Description'], $product->getStrProductDesc()
+        );
         $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
         $this->assertEquals($productData['Stock'], $product->getStock());
         $this->assertNotNull($product->getDtmDiscontinued());
@@ -42,7 +52,11 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test adding product if 'Product Code' already exists
+     *
      * @covers AlterEntities::flushChanges()
+     *
+     * @return void
      */
     public function testAddingProductIfExist()
     {
@@ -78,9 +92,15 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
         $correctProducts = array($productData);
         $alterEntities->flushChanges($correctProducts);
 
-        $this->assertEquals($productData['Product Code'], $product->getStrProductCode());
-        $this->assertEquals($productData['Product Name'], $product->getStrProductName());
-        $this->assertEquals($productData['Product Description'], $product->getStrProductDesc());
+        $this->assertEquals(
+            $productData['Product Code'], $product->getStrProductCode()
+        );
+        $this->assertEquals(
+            $productData['Product Name'], $product->getStrProductName()
+        );
+        $this->assertEquals(
+            $productData['Product Description'], $product->getStrProductDesc()
+        );
         $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
         $this->assertEquals($productData['Stock'], $product->getStock());
         $this->assertNotNull($product->getDtmDiscontinued());
@@ -88,3 +108,4 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($product->getStmTimeStamp());
     }
 }
+
