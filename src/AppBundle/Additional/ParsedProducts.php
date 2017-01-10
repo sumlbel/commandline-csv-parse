@@ -2,6 +2,8 @@
 
 namespace AppBundle\Additional;
 
+use AppBundle\Entity\Product;
+
 /**
  * Class ParsedProducts
  *
@@ -70,15 +72,15 @@ class ParsedProducts
     /**
      * Add one set of product data to correct array.
      *
-     * @param string $productCode Product code
+     * @param string  $productCode Product code
      * (have to be unique for different products)
-     * @param array  $productData An array with correct data
+     * @param Product $product     Product object with correct data
      *
      * @return void
      */
-    public function addCorrect(string $productCode, array $productData)
+    public function addCorrect(string $productCode, Product $product)
     {
-        $this->correct[$productCode] = $productData;
+        $this->correct[$productCode] = $product;
     }
 
     /**

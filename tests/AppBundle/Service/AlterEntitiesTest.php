@@ -3,58 +3,16 @@
 namespace Tests\AppBundle\Service;
 
 use AppBundle\Service\AlterEntities;
-use Doctrine\ORM\EntityRepository;
+use AppBundle\Service\CsvParser;
 use Doctrine\Common\Persistence\ObjectManager;
 
 class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * Test creation of new product
-     *
-     * @covers AlterEntities::setNewProduct()
-     * @covers AlterEntities::setProductData()
-     *
-     * @return void
-     */
-    public function testProductCreation()
-    {
-        $entityManager = $this
-            ->getMockBuilder(ObjectManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $alterEntities = new AlterEntities($entityManager);
-
-        $productData = array(
-            'Product Code' => 'P9999',
-            'Product Name' => 'PS4',
-            'Product Description' => 'Best Gaming Ever',
-            'Cost in GBP' => '120.0',
-            'Stock' => '40',
-            'Discontinued' => 'yes',
-        );
-        $product = $alterEntities->setNewProduct($productData);
-
-        $this->assertEquals(
-            $productData['Product Code'], $product->getStrProductCode()
-        );
-        $this->assertEquals(
-            $productData['Product Name'], $product->getStrProductName()
-        );
-        $this->assertEquals(
-            $productData['Product Description'], $product->getStrProductDesc()
-        );
-        $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
-        $this->assertEquals($productData['Stock'], $product->getStock());
-        $this->assertNotNull($product->getDtmDiscontinued());
-        $this->assertNotNull($product->getDtmAdded());
-        $this->assertNotNull($product->getStmTimeStamp());
-    }
 
     /**
      * Test adding product if 'Product Code' already exists
      *
-     * @covers AlterEntities::flushChanges()
+     * @covers AlterEntities::updateProductData()
      *
      * @return void
      */
@@ -65,7 +23,18 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $productData = array(
+        $alterEntities = new AlterEntities($entityManager);
+        $csvParser = new CsvParser();
+
+        $oldData = array(
+            'Product Code' => 'P9999',
+            'Product Name' => 'PS3',
+            'Product Description' => 'Best Gaming Ever',
+            'Cost in GBP' => '70.0',
+            'Stock' => '35',
+            'Discontinued' => 'yes',
+        );
+        $newData = array(
             'Product Code' => 'P9999',
             'Product Name' => 'PS4',
             'Product Description' => 'Best Gaming Ever',
@@ -74,35 +43,22 @@ class AlterEntitiesTest extends \PHPUnit_Framework_TestCase
             'Discontinued' => 'yes',
         );
 
-        $alterEntities = new AlterEntities($entityManager);
-        $product = $alterEntities->setNewProduct($productData);
+        $oldProduct = $csvParser->setNewProduct($oldData);
+        $newProduct = $csvParser->setNewProduct($newData);
 
-        $employeeRepository = $this
-            ->getMockBuilder(EntityRepository::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $employeeRepository->expects($this->once())
-            ->method('findOneBy')
-            ->will($this->returnValue($product));
-
-        $entityManager->expects($this->once())
-            ->method('getRepository')
-            ->will($this->returnValue($employeeRepository));
-
-        $correctProducts = array($productData);
-        $alterEntities->flushChanges($correctProducts);
+        $product = $alterEntities->updateProductData($oldProduct, $newProduct);
 
         $this->assertEquals(
-            $productData['Product Code'], $product->getStrProductCode()
+            $newProduct->getStrProductCode(), $product->getStrProductCode()
         );
         $this->assertEquals(
-            $productData['Product Name'], $product->getStrProductName()
+            $newProduct->getStrProductName(), $product->getStrProductName()
         );
         $this->assertEquals(
-            $productData['Product Description'], $product->getStrProductDesc()
+            $newProduct->getStrProductDesc(), $product->getStrProductDesc()
         );
-        $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
-        $this->assertEquals($productData['Stock'], $product->getStock());
+        $this->assertEquals($newProduct->getPrice(), $product->getPrice());
+        $this->assertEquals($newProduct->getStock(), $product->getStock());
         $this->assertNotNull($product->getDtmDiscontinued());
         $this->assertNotNull($product->getDtmAdded());
         $this->assertNotNull($product->getStmTimeStamp());

@@ -28,15 +28,54 @@ class CsvParserTest extends \PHPUnit_Framework_TestCase
 
         $csvParser = new CsvParser();
         $products = $csvParser->parse($reader);
-        $productData = $products->getCorrect()['P8888'];
+        $product = $products->getCorrect()['P8888'];
 
-        $this->assertEquals($productData['Product Code'], 'P8888');
-        $this->assertEquals($productData['Product Name'], 'Speakers');
-        $this->assertEquals($productData['Product Description'], '800w');
-        $this->assertEquals($productData['Cost in GBP'], '99.99');
-        $this->assertEquals($productData['Stock'], '20');
-        $this->assertEquals($productData['Discontinued'], 'yes');
+        $this->assertEquals($product->getStrProductCode(), 'P8888');
+        $this->assertEquals($product->getStrProductName(), 'Speakers');
+        $this->assertEquals($product->getStrProductDesc(), '800w');
+        $this->assertEquals($product->getPrice(), '99.99');
+        $this->assertEquals($product->getStock(), '20');
+        $this->assertNotNull($product->getDtmDiscontinued());
         $this->assertEquals($products->getSkipping(), array());
         $this->assertEquals($products->getCountProcessed(), '1');
+    }
+
+
+    /**
+     * Test creation of new product
+     *
+     * @covers CsvParser::setNewProduct()
+     * @covers CsvParser::setProductData()
+     *
+     * @return void
+     */
+    public function testProductCreation()
+    {
+        $csvParser = new CsvParser();
+
+        $productData = array(
+            'Product Code' => 'P9999',
+            'Product Name' => 'PS4',
+            'Product Description' => 'Best Gaming Ever',
+            'Cost in GBP' => '120.0',
+            'Stock' => '40',
+            'Discontinued' => 'yes',
+        );
+        $product = $csvParser->setNewProduct($productData);
+
+        $this->assertEquals(
+            $productData['Product Code'], $product->getStrProductCode()
+        );
+        $this->assertEquals(
+            $productData['Product Name'], $product->getStrProductName()
+        );
+        $this->assertEquals(
+            $productData['Product Description'], $product->getStrProductDesc()
+        );
+        $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
+        $this->assertEquals($productData['Stock'], $product->getStock());
+        $this->assertNotNull($product->getDtmDiscontinued());
+        $this->assertNotNull($product->getDtmAdded());
+        $this->assertNotNull($product->getStmTimeStamp());
     }
 }

@@ -41,14 +41,12 @@ class AlterEntities
     {
         $em = $this->em;
         $repository = $this->em->getRepository('AppBundle:Product');
-        foreach ($correctProducts as $productData) {
-            $product = $repository->findOneBy(
-                array('strProductCode' => $productData['Product Code'])
+        foreach ($correctProducts as $product) {
+            $duplicate = $repository->findOneBy(
+                array('strProductCode' => $product->getStrProductCode())
             );
-            if (!$product) {
-                $product = $this->setNewProduct($productData);
-            } else {
-                $product = $this->setProductData($product, $productData);
+            if ($duplicate) {
+                $product = $this->updateProductData($duplicate, $product);
             }
             $em->merge($product);
         }
@@ -56,39 +54,21 @@ class AlterEntities
     }
 
     /**
-     * Set new product from product data array
+     * Update product, which already in database
      *
-     * @param array $productData Array with product data
-     *
-     * @return Product
-     */
-    public function setNewProduct($productData)
-    {
-        $product = new Product();
-        $product->setStrproductcode($productData['Product Code']);
-        $product = $this->setProductData($product, $productData);
-        return $product;
-    }
-
-    /**
-     * Set data of existing product
-     *
-     * @param Product $product     Product object
-     * @param array   $productData Array with product data
+     * @param Product $duplicate Old product funded in repository
+     * @param Product $product   New product with same product code
      *
      * @return Product
      */
-    public function setProductData(Product $product, $productData)
+    public function updateProductData(Product $duplicate, Product $product)
     {
-        $product->setStrproductname($productData['Product Name']);
-        $product->setStrproductdesc($productData['Product Description']);
-        $product->setStock(intval($productData['Stock']));
-        $product->setPrice(floatval($productData['Cost in GBP']));
-        $dateTime = new \DateTime();
-        $product->setDtmadded($dateTime);
-        if ($productData['Discontinued'] === 'yes') {
-            $product->setDtmdiscontinued($dateTime);
-        }
-        return $product;
+        $duplicate->setStrproductname($product->getStrProductName());
+        $duplicate->setStrproductdesc($product->getStrProductDesc());
+        $duplicate->setStock($product->getStock());
+        $duplicate->setPrice($product->getPrice());
+        $duplicate->setDtmdiscontinued($product->getDtmDiscontinued());
+        return $duplicate;
     }
 }
+
