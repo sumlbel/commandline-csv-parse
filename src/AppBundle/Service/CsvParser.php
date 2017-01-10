@@ -13,23 +13,6 @@ use Ddeboer\DataImport\Reader\CsvReader;
 class CsvParser
 {
     /**
-     * Split products into correct, skipping and count entries
-     *
-     * @param \SplFileObject $file \SplFileObject object of *.csv file
-     *
-     * @return array
-     */
-    public function parse($file): ParsedProducts
-    {
-        $reader = new CsvReader($file, ',');
-        $reader->setHeaderRowNumber(0);
-
-        $products = $this->splitProducts($reader);
-
-        return $products;
-    }
-
-    /**
      * Divide data lines from reader into correct products,
      * skipping because of errors or according to business logic
      * and counts processed items
@@ -38,7 +21,7 @@ class CsvParser
      *
      * @return ParsedProducts
      */
-    public function splitProducts($reader): ParsedProducts
+    public function parse($reader): ParsedProducts
     {
         $products = new ParsedProducts();
 

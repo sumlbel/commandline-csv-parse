@@ -10,24 +10,24 @@ namespace Tests\AppBundle\Service;
 
 
 use AppBundle\Service\CsvParser;
+use AppBundle\Service\Validator;
 
 class CsvParserTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * Test parsing correct csv file
      *
      * @covers CsvParser::parse()
-     * @covers CsvParser::splitProducts()
      *
      * @return void
      */
     public function testParsingCorrectCsv()
     {
-        $file = new \SplFileObject('app/Resources/test.csv');
+        $validator = new Validator();
+        $reader = $validator->validate('app/Resources/tests/correct.csv');
 
         $csvParser = new CsvParser();
-        $products = $csvParser->parse($file);
+        $products = $csvParser->parse($reader);
         $productData = $products->getCorrect()['P8888'];
 
         $this->assertEquals($productData['Product Code'], 'P8888');

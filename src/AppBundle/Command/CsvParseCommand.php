@@ -36,7 +36,7 @@ class CsvParseCommand extends ContainerAwareCommand
     }
 
     /**
-     * Run script, which parsing csv file
+     * Run script, which validating and parsing csv file
      * and making changes to database(not in test mode)
      *
      * @param InputInterface  $input  InputInterface object
@@ -49,19 +49,24 @@ class CsvParseCommand extends ContainerAwareCommand
         $parser = $this->getContainer()->get('app.csv_parser');
         $alter = $this->getContainer()->get('app.alter_entities');
         $logger = $this->getContainer()->get('app.logger');
+        $validator = $this->getContainer()->get('app.validator');
 
-        $file = new \SplFileObject($input->getArgument('file_path'));
-        $products = $parser->parse($file);
-
-        if ($input->getOption('test')) {
-            $output->writeln(
-                'Running in test mode. No changes will be made in database.'
-            );
+        $reader = $validator->validate($input->getArgument('file_path'));
+        if (!$validator->isValid()) {
+            $output->writeln($validator->getMessage());
         } else {
-            $alter->flushChanges($products->getCorrect());
-        }
+            $products = $parser->parse($reader);
 
-        $logger->logWork($output, $products);
+            if ($input->getOption('test')) {
+                $output->writeln(
+                    'Running in test mode. No changes will be made in database.'
+                );
+            } else {
+                $alter->flushChanges($products->getCorrect());
+            }
+
+            $logger->logWork($output, $products);
+        }
     }
 }
 

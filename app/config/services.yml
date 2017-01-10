@@ -18,3 +18,7 @@ services:
     app.logger:
             class:        AppBundle\Service\Logger
             arguments:    [  ]
+
+    app.validator:
+            class:        AppBundle\Service\Validator
+            arguments:    [  ]
