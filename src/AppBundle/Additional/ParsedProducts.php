@@ -40,8 +40,8 @@ class ParsedProducts
      */
     public function __construct()
     {
-        $this->correct = array();
-        $this->skipping = array();
+        $this->correct = [];
+        $this->skipping = [];
         $this->countProcessed = 0;
     }
 
@@ -76,9 +76,9 @@ class ParsedProducts
      *
      * @return void
      */
-    public function addCorrect(Product $product)
+    public function addCorrectProduct(Product $product)
     {
-        $this->correct[$product->getStrProductCode()] = $product;
+        $this->correct[$product->getProductCode()] = $product;
     }
 
     /**
@@ -110,7 +110,7 @@ class ParsedProducts
      *
      * @return void
      */
-    public function addSkipping(array $productData)
+    public function addSkippingProduct(array $productData)
     {
         $this->skipping[] = $productData;
     }

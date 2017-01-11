@@ -9,7 +9,7 @@ services:
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
     app.csv_parser:
         class:        AppBundle\Service\CsvParser
-        arguments:    [ ]
+        arguments:    [ "%product.headers%" ]
 
     app.alter_entities:
             class:        AppBundle\Service\AlterEntities

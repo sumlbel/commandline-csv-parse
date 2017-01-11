@@ -13,6 +13,18 @@ use Ddeboer\DataImport\Reader\CsvReader;
  */
 class CsvParser
 {
+    private $headers;
+
+    /**
+     * CsvParser constructor.
+     *
+     * @param array $headers array of headers
+     */
+    public function __construct(array $headers)
+    {
+        $this->headers = $headers;
+    }
+
     /**
      * Divide data lines from reader into correct products,
      * skipping because of errors or according to business logic
@@ -29,10 +41,10 @@ class CsvParser
         foreach ($reader as $line) {
             if ($this->isAcceptable($line)) {
                 $product = $this->setNewProduct($line);
-                $products->addCorrect($product);
+                $products->addCorrectProduct($product);
                 $products->increaseCount(1);
             } else {
-                $products->addSkipping($line);
+                $products->addSkippingProduct($line);
             }
         }
         $products->setSkipping(
@@ -59,15 +71,14 @@ class CsvParser
             $str = mb_convert_encoding($str, 'UTF-8');
         }
         $product = new Product();
-        $product->setStrproductcode($productData['Product Code']);
-        $product->setStrproductname($productData['Product Name']);
-        $product->setStrproductdesc($productData['Product Description']);
-        $product->setStock(intval($productData['Stock']));
-        $product->setPrice(floatval($productData['Cost in GBP']));
+        $product->setProductCode($productData[$this->headers['code']]);
+        $product->setProductName($productData[$this->headers['name']]);
+        $product->setProductDesc($productData[$this->headers['description']]);
+        $product->setStock(intval($productData[$this->headers['stock']]));
+        $product->setPrice(floatval($productData[$this->headers['price']]));
         $dateTime = new \DateTime();
-        $product->setStmTimeStamp($dateTime);
-        if ($productData['Discontinued'] === 'yes') {
-            $product->setDtmdiscontinued($dateTime);
+        if ($productData[$this->headers['discontinued']] === 'yes') {
+            $product->setDiscontinued($dateTime);
         }
         return $product;
     }
@@ -77,16 +88,12 @@ class CsvParser
      */
     public function isAcceptable($line): bool
     {
-        $productCost = floatval($line['Cost in GBP']);
-        $isStringsValid = (strlen($line['Product Code']) < 10) &&
-            (strlen($line['Product Name']) < 50) &&
-            (strlen($line['Product Description']) < 255);
-        if ($productCost < 1000 && $isStringsValid) {
-            if ($productCost > 5 || intval($line['Stock']) > 10) {
+        $productCost = floatval($line[$this->headers['price']]);
+        if ($productCost < 1000) {
+            if ($productCost > 5 || intval($this->headers['stock']) > 10) {
                 return true;
             }
-        } else {
-            return false;
         }
+        return false;
     }
 }

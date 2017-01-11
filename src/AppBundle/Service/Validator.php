@@ -17,7 +17,7 @@ class Validator
      *
      * @var bool
      */
-    protected $isValid;
+    protected $valid;
 
     /**
      * Error message
@@ -31,7 +31,7 @@ class Validator
      */
     public function __construct()
     {
-        $this->isValid = true;
+        $this->valid = true;
         $this->message = '';
     }
 
@@ -44,9 +44,9 @@ class Validator
      */
     public function validate($filePath)
     {
-        if ($this->extensionValidation($filePath)) {
+        if ($this->isExtensionValid($filePath)) {
             $reader = $this->initializeReader($filePath);
-            if ($this->headersValidation($reader)) {
+            if ($this->isHeadersValid($reader)) {
                 return $reader;
             }
         }
@@ -60,7 +60,7 @@ class Validator
      */
     public function isValid(): bool
     {
-        return $this->isValid;
+        return $this->valid;
     }
 
     /**
@@ -80,11 +80,11 @@ class Validator
      *
      * @return bool
      */
-    public function extensionValidation($filePath)
+    public function isExtensionValid($filePath)
     {
         $fileInfo = new SplFileInfo($filePath);
         if ($fileInfo->getExtension() !== 'csv') {
-            $this->isValid = false;
+            $this->valid = false;
             $this->message = '<error>Incorrect file. '.
                 'It should have an *.csv extension</error>';
         }
@@ -114,16 +114,16 @@ class Validator
      *
      * @return bool
      */
-    public function headersValidation($reader)
+    public function isHeadersValid($reader)
     {
         $headers = $reader->getColumnHeaders();
-        $this->isValid = in_array('Product Code', $headers) &&
+        $this->valid = in_array('Product Code', $headers) &&
             in_array('Product Name', $headers) &&
             in_array('Product Description', $headers) &&
             in_array('Stock', $headers) &&
             in_array('Cost in GBP', $headers) &&
             in_array('Discontinued', $headers);
-        if (!$this->isValid) {
+        if (!$this->valid) {
             $this->message = '<error>Incorrect file. '.
                 'It should contain headers such: '.PHP_EOL.
                 'Product Code, Product Name, Product Description, '.

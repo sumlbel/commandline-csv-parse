@@ -4,6 +4,8 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Product
@@ -23,7 +25,7 @@ class Product
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
-    private $intProductDataId;
+    private $productDataId;
 
     /**
      * Product name
@@ -31,8 +33,10 @@ class Product
      * @var string
      *
      * @ORM\Column(name="strProductName", type="string", length=50, nullable=false)
+     *
+     * @Assert\Length(max = 50)
      */
-    private $strProductName;
+    private $productName;
 
     /**
      * Product description
@@ -40,8 +44,10 @@ class Product
      * @var string
      *
      * @ORM\Column(name="strProductDesc", type="string", length=255, nullable=false)
+     *
+     * @Assert\Length(max = 255)
      */
-    private $strProductDesc;
+    private $productDesc;
 
     /**
      * Product code
@@ -50,17 +56,20 @@ class Product
      *
      * @ORM\Column(name="strProductCode",
      *     type="string", length=10, nullable=false, unique=true)
+     *
+     * @Assert\Length(max = 10)
      */
-    private $strProductCode;
+    private $productCode;
 
     /**
      * Date and time of the addition of the product
      *
      * @var \DateTime
      *
-     * @ORM\Column(name="dtmAdded", type="datetime", nullable=true)
+     * @ORM\Column(name="dtmAdded", type="datetime",
+     *     nullable=true, options={"default": 0})
      */
-    private $dtmAdded;
+    private $added;
 
     /**
      * The date and time when the product was discontinued
@@ -69,21 +78,22 @@ class Product
      *
      * @ORM\Column(name="dtmDiscontinued", type="datetime", nullable=true)
      */
-    private $dtmDiscontinued;
+    private $discontinued;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="stmTimeStamp", type="datetime", nullable=false)
      */
-    private $stmTimeStamp;
+    private $timeStamp;
 
     /**
      * Date and time of the last changes of the product
      *
      * @var integer
      *
-     * @ORM\Column(name="stock", type="integer")
+     * @ORM\Column(name="stock", type="integer",
+     *     options={"unsigned"=true, "default"=0})
      */
     private $stock;
 
@@ -92,32 +102,41 @@ class Product
      *
      * @var float
      *
-     * @ORM\Column(name="price", type="float")
+     * @ORM\Column(name="price", type="decimal", precision=6, scale=2)
+     *
+     * @Assert\LessThanOrEqual(1000)
      */
     private $price;
 
-
+    /**
+     * Product constructor
+     */
+    public function __construct()
+    {
+        $this->added = new \DateTime;
+        $this->timeStamp = new \DateTime;
+    }
 
     /**
      * Get intProductDataId
      *
      * @return integer
      */
-    public function getIntProductDataId()
+    public function getProductDataId()
     {
-        return $this->intProductDataId;
+        return $this->productDataId;
     }
 
     /**
      * Set strProductName
      *
-     * @param string $strProductName Product name
+     * @param string $productName Product name
      *
      * @return Product
      */
-    public function setStrProductName($strProductName)
+    public function setProductName($productName)
     {
-        $this->strProductName = $strProductName;
+        $this->productName = $productName;
 
         return $this;
     }
@@ -127,21 +146,21 @@ class Product
      *
      * @return string
      */
-    public function getStrProductName()
+    public function getProductName()
     {
-        return $this->strProductName;
+        return $this->productName;
     }
 
     /**
      * Set strProductDesc
      *
-     * @param string $strProductDesc Product description
+     * @param string $productDesc Product description
      *
      * @return Product
      */
-    public function setStrProductDesc($strProductDesc)
+    public function setProductDesc($productDesc)
     {
-        $this->strProductDesc = $strProductDesc;
+        $this->productDesc = $productDesc;
 
         return $this;
     }
@@ -151,21 +170,21 @@ class Product
      *
      * @return string
      */
-    public function getStrProductDesc()
+    public function getProductDesc()
     {
-        return $this->strProductDesc;
+        return $this->productDesc;
     }
 
     /**
      * Set strProductCode
      *
-     * @param string $strProductCode Product code
+     * @param string $productCode Product code
      *
      * @return Product
      */
-    public function setStrProductCode($strProductCode)
+    public function setProductCode($productCode)
     {
-        $this->strProductCode = $strProductCode;
+        $this->productCode = $productCode;
 
         return $this;
     }
@@ -175,21 +194,21 @@ class Product
      *
      * @return string
      */
-    public function getStrProductCode()
+    public function getProductCode()
     {
-        return $this->strProductCode;
+        return $this->productCode;
     }
 
     /**
      * Set dtmAdded
      *
-     * @param \DateTime $dtmAdded \DateTime of the product addition
+     * @param \DateTime $added \DateTime of the product addition
      *
      * @return Product
      */
-    public function setDtmAdded($dtmAdded)
+    public function setAdded($added)
     {
-        $this->dtmAdded = $dtmAdded;
+        $this->added = $added;
 
         return $this;
     }
@@ -199,21 +218,21 @@ class Product
      *
      * @return \DateTime
      */
-    public function getDtmAdded()
+    public function getAdded()
     {
-        return $this->dtmAdded;
+        return $this->added;
     }
 
     /**
      * Set dtmDiscontinued
      *
-     * @param \DateTime $dtmDiscontinued \DateTime of product became discontinued
+     * @param \DateTime $discontinued \DateTime of product became discontinued
      *
      * @return Product
      */
-    public function setDtmDiscontinued($dtmDiscontinued)
+    public function setDiscontinued($discontinued)
     {
-        $this->dtmDiscontinued = $dtmDiscontinued;
+        $this->discontinued = $discontinued;
 
         return $this;
     }
@@ -223,21 +242,21 @@ class Product
      *
      * @return \DateTime
      */
-    public function getDtmDiscontinued()
+    public function getDiscontinued()
     {
-        return $this->dtmDiscontinued;
+        return $this->discontinued;
     }
 
     /**
      * Set stmTimeStamp
      *
-     * @param \DateTime $stmTimeStamp \DateTime of last changes
+     * @param \DateTime $timeStamp \DateTime of last changes
      *
      * @return Product
      */
-    public function setStmTimeStamp($stmTimeStamp)
+    public function setTimeStamp($timeStamp)
     {
-        $this->stmTimeStamp = $stmTimeStamp;
+        $this->timeStamp = $timeStamp;
 
         return $this;
     }
@@ -247,9 +266,9 @@ class Product
      *
      * @return \DateTime
      */
-    public function getStmTimeStamp()
+    public function getTimeStamp()
     {
-        return $this->stmTimeStamp;
+        return $this->timeStamp;
     }
 
     /**
@@ -298,11 +317,5 @@ class Product
         return $this;
     }
 
-    /**
-     * Product constructor.
-     */
-    public function __construct()
-    {
-        $this->setDtmAdded(new \DateTime());
-    }
+
 }
