@@ -110,7 +110,7 @@ class ParsedProducts
      *
      * @return void
      */
-    public function addSkippingProduct(array $productData)
+    public function addSkippingLine(array $productData)
     {
         $this->skipping[] = $productData;
     }

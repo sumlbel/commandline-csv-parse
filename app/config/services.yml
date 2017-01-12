@@ -11,14 +11,10 @@ services:
         class:        AppBundle\Service\CsvParser
         arguments:    [ "%product.headers%", "@validator" ]
 
-    app.alter_entities:
-            class:        AppBundle\Service\AlterEntities
-            arguments:    [ '@doctrine.orm.entity_manager' ]
-
     app.logger:
             class:        AppBundle\Service\Logger
             arguments:    [  ]
 
     app.csv_validator:
-            class:        AppBundle\Service\Validator
+            class:        AppBundle\Service\CsvValidator
             arguments:    [ "%product.headers%" ]

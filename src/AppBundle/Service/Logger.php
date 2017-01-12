@@ -36,7 +36,7 @@ class Logger
         $output->writeln(
             '<comment>'.
             count($products->getSkipping()).
-            ' product(s) have been skipped: </comment>'
+            ' line(s) have been skipped: </comment>'
         );
         foreach ($products->getSkipping() as $productData) {
             $output->writeln('<comment>'.implode(' ', $productData).'</comment>');

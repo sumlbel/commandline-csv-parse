@@ -85,7 +85,8 @@ class Product
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="stmTimeStamp", type="datetime", nullable=false)
+     * @ORM\Column(name="stmTimeStamp", type="datetime",
+     *     nullable=false, options={"default": 0})
      */
     private $timeStamp;
 
@@ -110,14 +111,14 @@ class Product
      */
     private $price;
 
-    /**
-     * Product constructor
-     */
-    public function __construct()
-    {
-        $this->added = new \DateTime;
-        $this->timeStamp = new \DateTime;
-    }
+//    /**
+//     * Product constructor
+//     */
+//    public function __construct()
+//    {
+//        $this->added = new \DateTime;
+//        $this->timeStamp = new \DateTime;
+//    }
 
     /**
      * Get intProductDataId

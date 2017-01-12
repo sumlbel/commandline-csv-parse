@@ -10,12 +10,13 @@ namespace Tests\AppBundle\Service;
 
 
 use AppBundle\Service\CsvParser;
-use AppBundle\Service\Validator;
+use AppBundle\Service\CsvValidator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class CsvParserTest extends KernelTestCase
 {
     private $container;
+    private $csvValidator;
     private $validator;
     private $headers;
     private $parser;
@@ -25,8 +26,9 @@ class CsvParserTest extends KernelTestCase
         self::bootKernel();
         $this->container = self::$kernel->getContainer();
         $this->headers = $this->container->getParameter('product.headers');
-        $this->validator = new Validator($this->headers);
-        $this->parser = new CsvParser($this->headers);
+        $this->validator = $this->container->get('validator');
+        $this->csvValidator = new CsvValidator($this->headers);
+        $this->parser = new CsvParser($this->headers, $this->validator);
     }
     /**
      * Test parsing correct csv file
@@ -37,7 +39,7 @@ class CsvParserTest extends KernelTestCase
      */
     public function testParsingCorrectCsv()
     {
-        $reader = $this->validator->validate('app/Resources/tests/correct.csv');
+        $reader = $this->csvValidator->validate('app/Resources/tests/correct.csv');
 
         $products = $this->parser->parse($reader);
         $product = $products->getCorrect()['P8888'];
@@ -83,7 +85,5 @@ class CsvParserTest extends KernelTestCase
         $this->assertEquals($productData['Cost in GBP'], $product->getPrice());
         $this->assertEquals($productData['Stock'], $product->getStock());
         $this->assertNotNull($product->getDiscontinued());
-        $this->assertNotNull($product->getAdded());
-        $this->assertNotNull($product->getTimeStamp());
     }
 }

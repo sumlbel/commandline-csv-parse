@@ -5,6 +5,8 @@ namespace AppBundle\Service;
 use AppBundle\Additional\ParsedProducts;
 use AppBundle\Entity\Product;
 use Ddeboer\DataImport\Reader\CsvReader;
+use Ddeboer\DataImport\Writer\DoctrineWriter;
+use Doctrine\ORM\EntityManager;
 
 /**
  * Class CsvParser
@@ -13,6 +15,7 @@ use Ddeboer\DataImport\Reader\CsvReader;
  */
 class CsvParser
 {
+
     private $headers;
     private $validator;
 
@@ -47,7 +50,7 @@ class CsvParser
                 $products->addCorrectProduct($product);
                 $products->increaseCount(1);
             } else {
-                $products->addSkippingProduct($line);
+                $products->addSkippingLine($line);
             }
         }
         $products->setSkipping(

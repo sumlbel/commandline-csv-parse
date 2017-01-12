@@ -2,11 +2,22 @@
 
 namespace AppBundle\Command;
 
+use AppBundle\AppBundle;
+use AppBundle\Service\PersistEntities;
+use Ddeboer\DataImport\Filter\ValidatorFilter;
+use Ddeboer\DataImport\Step\ConverterStep;
+use Ddeboer\DataImport\Step\FilterStep;
+use Ddeboer\DataImport\Step\MappingStep;
+use Ddeboer\DataImport\ValueConverter\ArrayValueConverterMap;
+use Ddeboer\DataImport\Workflow\StepAggregator;
+use Ddeboer\DataImport\Writer\DoctrineWriter;
+use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Workflow\Workflow;
 
 /**
  * Class CsvParseCommand
@@ -55,26 +66,74 @@ class CsvParseCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $csv_validator = $this->getContainer()->get('app.csv_validator');
+        $csvValidator = $this->getContainer()->get('app.csv_validator');
         $parser = $this->getContainer()->get('app.csv_parser');
-        $alter = $this->getContainer()->get('app.alter_entities');
         $logger = $this->getContainer()->get('app.logger');
+        $headers = $this->getContainer()->getParameter('product.headers');
 
-        $reader = $csv_validator->validate($input->getArgument('file_path'));
-        if (!$csv_validator->isValid()) {
-            $output->writeln($csv_validator->getMessage());
+        $reader = $csvValidator->validate($input->getArgument('file_path'));
+        $validator = $this->getContainer()->get('validator');
+        $mapping = new MappingStep();
+        $mapping->map('['.$headers['code'].']', '[productCode]');
+        $mapping->map('['.$headers['name'].']', '[productName]');
+        $mapping->map('['.$headers['description'].']', '[productDesc]');
+        $mapping->map('['.$headers['stock'].']', '[stock]');
+        $mapping->map('['.$headers['price'].']', '[price]');
+        $mapping->map('['.$headers['discontinued'].']', '[discontinued]');
+
+        $converter = new ArrayValueConverterMap(
+            ['discontinued' => 'discontinuedConverter']
+        );
+        $filter = new ValidatorFilter($validator);
+
+
+
+        $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $workflow = new StepAggregator($reader);
+        $converterStep = new ConverterStep();
+        $converterStep->add($converter);
+        $filterStep = new FilterStep();
+        $filterStep->add($filter);
+        $workflow
+            ->addStep($mapping)
+            ->addStep($converterStep)
+            ->addStep($filterStep)
+            ->addWriter(new DoctrineWriter($em, 'AppBundle:Product'))
+            ->process();
+        
+//        if ($csvValidator->isValid()) {
+//            $em->getConnection()->beginTransaction();
+//            try {
+//                $products = $parser->parse($reader);
+//
+//                if ($input->getOption('test')) {
+//                    $output->writeln(
+//                        'Running in test mode. No changes will be made in database.'
+//                    );
+//                } else {
+//                    $writer = new PersistEntities($em, 'AppBundle:Product');
+//                    $writer->writeItem($products->getCorrect());
+//                    $writer->flush();
+//                }
+//                $em->getConnection()->commit();
+//            } catch (Exception $e) {
+//                $em->getConnection()->rollBack();
+//                throw $e;
+//            }
+//
+//            $logger->logWork($output, $products);
+//        } else {
+//            $output->writeln($csvValidator->getMessage());
+//        }
+    }
+
+    function discontinuedConverter($discontinued)
+    {
+        $dateTime = new \DateTime();
+        if ($discontinued === 'yes') {
+            return $dateTime;
         } else {
-            $products = $parser->parse($reader);
-
-            if ($input->getOption('test')) {
-                $output->writeln(
-                    'Running in test mode. No changes will be made in database.'
-                );
-            } else {
-                $alter->flushChanges($products->getCorrect());
-            }
-
-            $logger->logWork($output, $products);
+            return null;
         }
     }
 }
