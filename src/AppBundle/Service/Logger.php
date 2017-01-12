@@ -13,7 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Logger
 {
-
     /**
      * Log work to Output Interface
      *

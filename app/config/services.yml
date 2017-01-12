@@ -9,7 +9,7 @@ services:
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
     app.csv_parser:
         class:        AppBundle\Service\CsvParser
-        arguments:    [ "%product.headers%" ]
+        arguments:    [ "%product.headers%", "@validator" ]
 
     app.alter_entities:
             class:        AppBundle\Service\AlterEntities
@@ -19,6 +19,6 @@ services:
             class:        AppBundle\Service\Logger
             arguments:    [  ]
 
-    app.validator:
+    app.csv_validator:
             class:        AppBundle\Service\Validator
-            arguments:    [  ]
+            arguments:    [ "%product.headers%" ]

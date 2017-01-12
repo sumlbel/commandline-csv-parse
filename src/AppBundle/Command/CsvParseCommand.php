@@ -55,14 +55,14 @@ class CsvParseCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $validator = $this->getContainer()->get('app.validator');
+        $csv_validator = $this->getContainer()->get('app.csv_validator');
         $parser = $this->getContainer()->get('app.csv_parser');
         $alter = $this->getContainer()->get('app.alter_entities');
         $logger = $this->getContainer()->get('app.logger');
 
-        $reader = $validator->validate($input->getArgument('file_path'));
-        if (!$validator->isValid()) {
-            $output->writeln($validator->getMessage());
+        $reader = $csv_validator->validate($input->getArgument('file_path'));
+        if (!$csv_validator->isValid()) {
+            $output->writeln($csv_validator->getMessage());
         } else {
             $products = $parser->parse($reader);
 

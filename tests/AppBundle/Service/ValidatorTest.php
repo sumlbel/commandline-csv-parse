@@ -10,10 +10,23 @@ namespace Tests\AppBundle\Service;
 
 
 use AppBundle\Service\Validator;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 
-class ValidatorTest extends \PHPUnit_Framework_TestCase
+class ValidatorTest extends KernelTestCase
 {
+    private $container;
+    private $validator;
+    private $headers;
+
+    public function setUp()
+    {
+        self::bootKernel();
+        $this->container = self::$kernel->getContainer();
+        $this->headers = $this->container->getParameter('product.headers');
+        $this->validator = new Validator($this->headers);
+    }
+
     /**
      * Test validating correct *.csv file
      *
@@ -23,12 +36,11 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatingCorrectCsv()
     {
-        $validator = new Validator();
-        $reader = $validator->validate('app/Resources/tests/correct.csv');
+        $reader = $this->validator->validate('app/Resources/tests/correct.csv');
 
         $this->assertNotNull($reader);
-        $this->assertEquals($validator->isValid(), true);
-        $this->assertEquals($validator->getMessage(), '');
+        $this->assertEquals($this->validator->isValid(), true);
+        $this->assertEquals($this->validator->getMessage(), '');
     }
 
     /**
@@ -40,17 +52,15 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatingIncorrectCsv()
     {
-        $validator = new Validator();
-        $reader = $validator->validate('app/Resources/tests/invalid.csv');
+        $reader = $this->validator->validate('app/Resources/tests/invalid.csv');
 
         $this->assertEquals($reader, null);
-        $this->assertEquals($validator->isValid(), false);
+        $this->assertEquals($this->validator->isValid(), false);
         $this->assertEquals(
-            $validator->getMessage(), '<error>Incorrect file. '.
-            'It should contain headers such: '.PHP_EOL.
-            'Product Code, Product Name, Product Description, '.
-            'Stock, Cost in GBP, Discontinued. '.PHP_EOL.
-            'All fields should be separated by comma</error>'
+            $this->validator->getMessage(), '<error>Incorrect file. '.
+                'It should contain headers such: '.PHP_EOL.
+                implode(', ', $this->headers).'. '.PHP_EOL.
+                'All fields should be separated by comma</error>'
         );
     }
 
@@ -63,13 +73,12 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatingInvalidFile()
     {
-        $validator = new Validator();
-        $reader = $validator->validate('app/Resources/tests/invalid.txt');
+        $reader = $this->validator->validate('app/Resources/tests/invalid.txt');
 
         $this->assertEquals($reader, null);
-        $this->assertEquals($validator->isValid(), false);
+        $this->assertEquals($this->validator->isValid(), false);
         $this->assertEquals(
-            $validator->getMessage(), '<error>Incorrect file. '.
+            $this->validator->getMessage(), '<error>Incorrect file. '.
             'It should have an *.csv extension</error>'
         );
     }

@@ -14,15 +14,17 @@ use Ddeboer\DataImport\Reader\CsvReader;
 class CsvParser
 {
     private $headers;
+    private $validator;
 
     /**
      * CsvParser constructor.
      *
      * @param array $headers array of headers
      */
-    public function __construct(array $headers)
+    public function __construct(array $headers, $validator)
     {
         $this->headers = $headers;
+        $this->validator = $validator;
     }
 
     /**
@@ -39,8 +41,9 @@ class CsvParser
         $products = new ParsedProducts();
 
         foreach ($reader as $line) {
-            if ($this->isAcceptable($line)) {
-                $product = $this->setNewProduct($line);
+            $product = $this->setNewProduct($line);
+            $errors = $this->validator->validate($product);
+            if (!$errors->has(0)) {
                 $products->addCorrectProduct($product);
                 $products->increaseCount(1);
             } else {
@@ -81,19 +84,5 @@ class CsvParser
             $product->setDiscontinued($dateTime);
         }
         return $product;
-    }
-
-    /**
-     * @param array $line
-     */
-    public function isAcceptable($line): bool
-    {
-        $productCost = floatval($line[$this->headers['price']]);
-        if ($productCost < 1000) {
-            if ($productCost > 5 || intval($this->headers['stock']) > 10) {
-                return true;
-            }
-        }
-        return false;
     }
 }

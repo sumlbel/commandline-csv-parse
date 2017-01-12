@@ -6,13 +6,15 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
+use AppBundle\Validator\Constraints as ProductAssert;
 
 /**
  * Product
  *
  * @ORM\Table(name="tblProductData")
  * @ORM\Entity
- * @UniqueEntity("strProductCode")
+ * @UniqueEntity("productCode")
+ * @ProductAssert\PriceStockLess(minPrice = 5, minStock = 10)
  */
 class Product
 {

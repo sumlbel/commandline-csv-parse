@@ -12,6 +12,8 @@ use SplFileInfo;
  */
 class Validator
 {
+    private $headers;
+
     /**
      * Is valid or not
      *
@@ -29,10 +31,11 @@ class Validator
     /**
      * Validator constructor.
      */
-    public function __construct()
+    public function __construct(array $headers)
     {
         $this->valid = true;
         $this->message = '';
+        $this->headers = $headers;
     }
 
     /**
@@ -116,18 +119,14 @@ class Validator
      */
     public function isHeadersValid($reader)
     {
-        $headers = $reader->getColumnHeaders();
-        $this->valid = in_array('Product Code', $headers) &&
-            in_array('Product Name', $headers) &&
-            in_array('Product Description', $headers) &&
-            in_array('Stock', $headers) &&
-            in_array('Cost in GBP', $headers) &&
-            in_array('Discontinued', $headers);
+        $csvHeaders = $reader->getColumnHeaders();
+        foreach ($this->headers as $header) {
+            $this->valid = $this->valid && in_array($header, $csvHeaders);
+        }
         if (!$this->valid) {
             $this->message = '<error>Incorrect file. '.
                 'It should contain headers such: '.PHP_EOL.
-                'Product Code, Product Name, Product Description, '.
-                'Stock, Cost in GBP, Discontinued. '.PHP_EOL.
+                implode(', ', $this->headers).'. '.PHP_EOL.
                 'All fields should be separated by comma</error>';
         }
         return $this->isValid();

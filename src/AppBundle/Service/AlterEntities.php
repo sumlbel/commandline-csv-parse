@@ -40,7 +40,7 @@ class AlterEntities
     {
         $em = $this->em;
         foreach ($correctProducts as $product) {
-            $em->merge($product);
+            $em->persist($product);
         }
         $em->flush();
     }

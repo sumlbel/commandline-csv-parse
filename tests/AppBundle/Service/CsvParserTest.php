@@ -11,9 +11,23 @@ namespace Tests\AppBundle\Service;
 
 use AppBundle\Service\CsvParser;
 use AppBundle\Service\Validator;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class CsvParserTest extends \PHPUnit_Framework_TestCase
+class CsvParserTest extends KernelTestCase
 {
+    private $container;
+    private $validator;
+    private $headers;
+    private $parser;
+
+    public function setUp()
+    {
+        self::bootKernel();
+        $this->container = self::$kernel->getContainer();
+        $this->headers = $this->container->getParameter('product.headers');
+        $this->validator = new Validator($this->headers);
+        $this->parser = new CsvParser($this->headers);
+    }
     /**
      * Test parsing correct csv file
      *
@@ -23,19 +37,17 @@ class CsvParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testParsingCorrectCsv()
     {
-        $validator = new Validator();
-        $reader = $validator->validate('app/Resources/tests/correct.csv');
+        $reader = $this->validator->validate('app/Resources/tests/correct.csv');
 
-        $csvParser = new CsvParser();
-        $products = $csvParser->parse($reader);
+        $products = $this->parser->parse($reader);
         $product = $products->getCorrect()['P8888'];
 
-        $this->assertEquals($product->getStrProductCode(), 'P8888');
-        $this->assertEquals($product->getStrProductName(), 'Speakers');
-        $this->assertEquals($product->getStrProductDesc(), '800w');
+        $this->assertEquals($product->getProductCode(), 'P8888');
+        $this->assertEquals($product->getProductName(), 'Speakers');
+        $this->assertEquals($product->getProductDesc(), '800w');
         $this->assertEquals($product->getPrice(), '99.99');
         $this->assertEquals($product->getStock(), '20');
-        $this->assertNotNull($product->getDtmDiscontinued());
+        $this->assertNotNull($product->getDiscontinued());
         $this->assertEquals($products->getSkipping(), []);
         $this->assertEquals($products->getCountProcessed(), '1');
     }
@@ -50,15 +62,14 @@ class CsvParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testProductCreation()
     {
-        $csvParser = new CsvParser();
 
-        $productData = ['Product Code' => 'P9999',
-            'Product Name' => 'PS4',
-            'Product Description' => 'Best Gaming Ever',
-            'Cost in GBP' => '120.0',
-            'Stock' => '40',
-            'Discontinued' => 'yes'];
-        $product = $csvParser->setNewProduct($productData);
+        $productData = [$this->headers['code'] => 'P9999',
+            $this->headers['name'] => 'PS4',
+            $this->headers['description'] => 'Best Gaming Ever',
+            $this->headers['price'] => '120.0',
+            $this->headers['stock'] => '40',
+            $this->headers['discontinued'] => 'yes'];
+        $product = $this->parser->setNewProduct($productData);
 
         $this->assertEquals(
             $productData['Product Code'], $product->getProductCode()
