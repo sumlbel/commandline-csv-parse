@@ -7,17 +7,17 @@ use AppBundle\Entity\Product;
 use Ddeboer\DataImport\Reader\CsvReader;
 
 /**
- * Class CsvParser
+ * Class CsvReaderFilter
  *
  * @package AppBundle\Service
  */
-class CsvParser
+class CsvReaderFilter
 {
     private $headers;
     private $validator;
 
     /**
-     * CsvParser constructor.
+     * CsvReaderFilter constructor.
      *
      * @param array $headers array of headers
      */
@@ -36,7 +36,7 @@ class CsvParser
      *
      * @return ParsedProducts
      */
-    public function parse($reader): ParsedProducts
+    public function filtrate($reader): ParsedProducts
     {
         $products = new ParsedProducts();
 

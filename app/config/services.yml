@@ -7,18 +7,14 @@ services:
 #    service_name:
 #        class: AppBundle\Directory\ClassName
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
-    app.csv_parser:
-        class:        AppBundle\Service\CsvParser
+    app.csv_reader_filter:
+        class:        AppBundle\Service\CsvReaderFilter
         arguments:    [ "%product.headers%", "@validator" ]
-
-    app.alter_entities:
-            class:        AppBundle\Service\AlterEntities
-            arguments:    [ '@doctrine.orm.entity_manager' ]
 
     app.logger:
             class:        AppBundle\Service\Logger
             arguments:    [  ]
 
     app.csv_validator:
-            class:        AppBundle\Service\Validator
+            class:        AppBundle\Service\CsvValidator
             arguments:    [ "%product.headers%" ]

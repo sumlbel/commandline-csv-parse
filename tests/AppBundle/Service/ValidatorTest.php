@@ -9,7 +9,7 @@
 namespace Tests\AppBundle\Service;
 
 
-use AppBundle\Service\Validator;
+use AppBundle\Service\CsvValidator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 
@@ -24,13 +24,13 @@ class ValidatorTest extends KernelTestCase
         self::bootKernel();
         $this->container = self::$kernel->getContainer();
         $this->headers = $this->container->getParameter('product.headers');
-        $this->validator = new Validator($this->headers);
+        $this->validator = new CsvValidator($this->headers);
     }
 
     /**
      * Test validating correct *.csv file
      *
-     * @covers Validator::validate()
+     * @covers CsvValidator::validate()
      *
      * @return void
      */
@@ -46,7 +46,7 @@ class ValidatorTest extends KernelTestCase
     /**
      * Test validating invalid *.csv
      *
-     * @covers Validator::validate()
+     * @covers CsvValidator::validate()
      *
      * @return void
      */
@@ -67,7 +67,7 @@ class ValidatorTest extends KernelTestCase
     /**
      * Test validating file with invalid extension
      *
-     * @covers Validator::validate()
+     * @covers CsvValidator::validate()
      *
      * @return void
      */

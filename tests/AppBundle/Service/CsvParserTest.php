@@ -9,37 +9,39 @@
 namespace Tests\AppBundle\Service;
 
 
-use AppBundle\Service\CsvParser;
-use AppBundle\Service\Validator;
+use AppBundle\Service\CsvReaderFilter;
+use AppBundle\Service\CsvValidator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class CsvParserTest extends KernelTestCase
+class CsvfilterTest extends KernelTestCase
 {
     private $container;
+    private $csvValidator;
     private $validator;
     private $headers;
-    private $parser;
+    private $filter;
 
     public function setUp()
     {
         self::bootKernel();
         $this->container = self::$kernel->getContainer();
         $this->headers = $this->container->getParameter('product.headers');
-        $this->validator = new Validator($this->headers);
-        $this->parser = new CsvParser($this->headers);
+        $this->validator = $this->container->get('validator');
+        $this->csvValidator = new CsvValidator($this->headers);
+        $this->filter = new CsvReaderFilter($this->headers, $this->validator);
     }
     /**
      * Test parsing correct csv file
      *
-     * @covers CsvParser::parse()
+     * @covers CsvReaderFilter::parse()
      *
      * @return void
      */
     public function testParsingCorrectCsv()
     {
-        $reader = $this->validator->validate('app/Resources/tests/correct.csv');
+        $reader = $this->csvValidator->validate('app/Resources/tests/correct.csv');
 
-        $products = $this->parser->parse($reader);
+        $products = $this->filter->filtrate($reader);
         $product = $products->getCorrect()['P8888'];
 
         $this->assertEquals($product->getProductCode(), 'P8888');
@@ -56,7 +58,7 @@ class CsvParserTest extends KernelTestCase
     /**
      * Test creation of new product
      *
-     * @covers CsvParser::setNewProduct()
+     * @covers CsvReaderFilter::setNewProduct()
      *
      * @return void
      */
@@ -69,7 +71,7 @@ class CsvParserTest extends KernelTestCase
             $this->headers['price'] => '120.0',
             $this->headers['stock'] => '40',
             $this->headers['discontinued'] => 'yes'];
-        $product = $this->parser->setNewProduct($productData);
+        $product = $this->filter->setNewProduct($productData);
 
         $this->assertEquals(
             $productData['Product Code'], $product->getProductCode()

@@ -2,6 +2,8 @@
 
 namespace AppBundle\Command;
 
+use AppBundle\Service\PersistEntities;
+use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -55,26 +57,35 @@ class CsvParseCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $csv_validator = $this->getContainer()->get('app.csv_validator');
-        $parser = $this->getContainer()->get('app.csv_parser');
-        $alter = $this->getContainer()->get('app.alter_entities');
+        $csvValidator = $this->getContainer()->get('app.csv_validator');
+        $filter = $this->getContainer()->get('app.csv_reader_filter');
         $logger = $this->getContainer()->get('app.logger');
 
-        $reader = $csv_validator->validate($input->getArgument('file_path'));
-        if (!$csv_validator->isValid()) {
-            $output->writeln($csv_validator->getMessage());
-        } else {
-            $products = $parser->parse($reader);
+        $reader = $csvValidator->validate($input->getArgument('file_path'));
 
-            if ($input->getOption('test')) {
-                $output->writeln(
-                    'Running in test mode. No changes will be made in database.'
-                );
-            } else {
-                $alter->flushChanges($products->getCorrect());
+        if ($csvValidator->isValid()) {
+            $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+            $em->getConnection()->beginTransaction();
+            try {
+                $products = $filter->filtrate($reader);
+                if ($input->getOption('test')) {
+                    $output->writeln(
+                        'Running in test mode. No changes will be made in database.'
+                    );
+                } else {
+                    $writer = new PersistEntities($em, 'AppBundle:Product');
+                    $writer->writeItem($products->getCorrect());
+                    $writer->flush();
+                }
+                $em->getConnection()->commit();
+            } catch (Exception $e) {
+                $em->getConnection()->rollBack();
+                throw $e;
             }
-
+            
             $logger->logWork($output, $products);
+        } else {
+            $output->writeln($csvValidator->getMessage());
         }
     }
 }

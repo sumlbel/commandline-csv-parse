@@ -10,7 +10,7 @@ use SplFileInfo;
  *
  * @package AppBundle\Service
  */
-class Validator
+class CsvValidator
 {
     private $headers;
 
