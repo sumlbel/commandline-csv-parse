@@ -11,17 +11,42 @@ use Symfony\Component\Validator\Constraint;
  */
 class PriceStockLess extends Constraint
 {
+    /**
+     * Violation message
+     *
+     * @var string
+     */
     public $message = 'If price less than "{{ minPrice }}" '.
     'stock can not be less than "{{ minStock }}"';
 
+    /**
+     * Minimal limit for price
+     *
+     * @var float
+     */
     public $minPrice;
+    /**
+     * Minimal limit for stock
+     *
+     * @var int
+     */
     public $minStock;
 
+    /**
+     * Get Targets
+     *
+     * @return string
+     */
     public function getTargets()
     {
         return self::CLASS_CONSTRAINT;
     }
 
+    /**
+     * PriceStockLess constructor.
+     *
+     * @param null $options
+     */
     public function __construct($options = null)
     {
         if (null !== $options && !is_array($options)) {

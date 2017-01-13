@@ -2,7 +2,13 @@
 
 namespace AppBundle\Command;
 
-use AppBundle\Service\PersistEntities;
+
+use AppBundle\Writer\ProductWriter;
+use Ddeboer\DataImport\Reader;
+use Ddeboer\DataImport\Step\ConverterStep;
+use Ddeboer\DataImport\Step\MappingStep;
+use Ddeboer\DataImport\Workflow\StepAggregator;
+use Doctrine\ORM\EntityManager;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -58,34 +64,123 @@ class CsvParseCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $csvValidator = $this->getContainer()->get('app.csv_validator');
-        $filter = $this->getContainer()->get('app.csv_reader_filter');
-        $logger = $this->getContainer()->get('app.logger');
 
         $reader = $csvValidator->validate($input->getArgument('file_path'));
-
+        
         if ($csvValidator->isValid()) {
-            $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-            $em->getConnection()->beginTransaction();
-            try {
-                $products = $filter->filtrate($reader);
-                if ($input->getOption('test')) {
-                    $output->writeln(
-                        'Running in test mode. No changes will be made in database.'
-                    );
-                } else {
-                    $writer = new PersistEntities($em, 'AppBundle:Product');
-                    $writer->writeItem($products->getCorrect());
-                    $writer->flush();
-                }
-                $em->getConnection()->commit();
-            } catch (Exception $e) {
-                $em->getConnection()->rollBack();
-                throw $e;
+            $isTest = $input->getOption('test');
+            if ($isTest) {
+                $output->writeln(
+                    'Running in test mode. No changes will be made in database.'
+                );
             }
-            
-            $logger->logWork($output, $products);
+
+            $this->runWorkflow($output, $reader, $isTest);
         } else {
             $output->writeln($csvValidator->getMessage());
         }
+    }
+
+    /**
+     * Set mapping
+     *
+     * @param array $headers
+     *
+     * @return MappingStep
+     */
+    protected function setMapping($headers): MappingStep
+    {
+        $mapping = new MappingStep();
+        $mapping->map('['.$headers['code'].']', '[productCode]');
+        $mapping->map('['.$headers['name'].']', '[productName]');
+        $mapping->map('['.$headers['description'].']', '[productDesc]');
+        $mapping->map('['.$headers['stock'].']', '[stock]');
+        $mapping->map('['.$headers['price'].']', '[price]');
+        $mapping->map('['.$headers['discontinued'].']', '[discontinued]');
+
+        return $mapping;
+    }
+
+    /**
+     * Set converter
+     *
+     * @return ConverterStep
+     */
+    protected function setConverterStep(): ConverterStep
+    {
+        $converterStep = new ConverterStep();
+        $converterStep->add(
+            function ($input) {
+                $dateTime = new \DateTime();
+                $input['stock'] = intval($input['stock']);
+                $input['price'] = floatval($input['price']);
+                $input['discontinued'] =
+                    ($input['discontinued'] === 'yes') ? $dateTime : null;
+
+                return $input;
+            }
+        );
+
+        return $converterStep;
+    }
+
+    /**
+     * Set writer
+     *
+     * @param EntityManager $em
+     * @param bool          $isTest
+     *
+     * @return ProductWriter
+     */
+    protected function setWriter($em, $isTest): ProductWriter
+    {
+        $writer = new ProductWriter($em, 'AppBundle:Product');
+        $validator = $this->getContainer()->get('validator');
+        $writer->setParameters($validator, $isTest);
+
+        return $writer;
+    }
+
+    /**
+     * Run the writer workflow
+     *
+     * @param OutputInterface $output
+     * @param Reader          $reader
+     * @param bool            $isTest Is running in test mode
+     *
+     * @throws Exception
+     *
+     * @return void
+     */
+    protected function runWorkflow(OutputInterface $output, $reader, $isTest)
+    {
+        $headers = $this->getContainer()->getParameter('product.headers');
+
+        $workflow = new StepAggregator($reader);
+        $mapping = $this->setMapping($headers);
+        $converterStep = $this->setConverterStep();
+
+        $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $em->getConnection()->beginTransaction();
+        try {
+            $writer = $this->setWriter($em, $isTest);
+            $result = $workflow
+                ->addStep($mapping)
+                ->addStep($converterStep)
+                ->addWriter($writer)
+                ->process();
+            $em->getConnection()->commit();
+        } catch (Exception $e) {
+            $em->getConnection()->rollBack();
+            throw $e;
+        }
+
+        $logger = $this->getContainer()->get('app.logger');
+        $logger->logWork(
+            $output,
+            $result->getSuccessCount(),
+            $reader->getErrors(),
+            $writer->getErrors()
+        );
     }
 }

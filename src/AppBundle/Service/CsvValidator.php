@@ -12,6 +12,11 @@ use SplFileInfo;
  */
 class CsvValidator
 {
+    /**
+     * Array of headers
+     *
+     * @var array
+     */
     private $headers;
 
     /**
@@ -30,6 +35,8 @@ class CsvValidator
 
     /**
      * Validator constructor.
+     *
+     * @param array $headers Array of headers
      */
     public function __construct(array $headers)
     {

@@ -13,17 +13,38 @@ use AppBundle\Service\CsvValidator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 
-class ValidatorTest extends KernelTestCase
+/**
+ * Class CsvValidatorTest
+ * @package Tests\AppBundle\Service
+ */
+class CsvValidatorTest extends KernelTestCase
 {
-    private $container;
+
+    /**
+     * Validator for *.csv file
+     *
+     * @var CsvValidator
+     */
     private $validator;
+
+    /**
+     * Array of *.csv proper headers
+     *
+     * @var array
+     */
     private $headers;
 
+    /**
+     * Set up the kernel test
+     *
+     * @return void
+     */
     public function setUp()
     {
         self::bootKernel();
-        $this->container = self::$kernel->getContainer();
-        $this->headers = $this->container->getParameter('product.headers');
+
+        $this->headers = self::$kernel
+            ->getContainer()->getParameter('product.headers');
         $this->validator = new CsvValidator($this->headers);
     }
 

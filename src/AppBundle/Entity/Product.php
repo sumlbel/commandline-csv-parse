@@ -85,7 +85,8 @@ class Product
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="stmTimeStamp", type="datetime", nullable=false)
+     * @ORM\Column(name="stmTimeStamp", type="datetime",
+     *     nullable=false, options={"default": 0})
      */
     private $timeStamp;
 
