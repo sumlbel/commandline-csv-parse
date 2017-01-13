@@ -111,14 +111,14 @@ class Product
      */
     private $price;
 
-//    /**
-//     * Product constructor
-//     */
-//    public function __construct()
-//    {
-//        $this->added = new \DateTime;
-//        $this->timeStamp = new \DateTime;
-//    }
+    /**
+     * Product constructor
+     */
+    public function __construct()
+    {
+        $this->added = new \DateTime;
+        $this->timeStamp = new \DateTime;
+    }
 
     /**
      * Get intProductDataId

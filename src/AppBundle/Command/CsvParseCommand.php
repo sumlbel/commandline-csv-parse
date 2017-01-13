@@ -67,7 +67,7 @@ class CsvParseCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $csvValidator = $this->getContainer()->get('app.csv_validator');
-        $parser = $this->getContainer()->get('app.csv_parser');
+        $filter = $this->getContainer()->get('app.entity_filter');
         $logger = $this->getContainer()->get('app.logger');
         $headers = $this->getContainer()->getParameter('product.headers');
 
@@ -81,59 +81,57 @@ class CsvParseCommand extends ContainerAwareCommand
         $mapping->map('['.$headers['price'].']', '[price]');
         $mapping->map('['.$headers['discontinued'].']', '[discontinued]');
 
-        $converter = new ArrayValueConverterMap(
-            ['discontinued' => 'discontinuedConverter']
-        );
-        $filter = new ValidatorFilter($validator);
-
-
-
         $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
         $workflow = new StepAggregator($reader);
+        $errors = $reader->getErrors();
         $converterStep = new ConverterStep();
-        $converterStep->add($converter);
-        $filterStep = new FilterStep();
-        $filterStep->add($filter);
-        $workflow
+        $converterStep->add(
+            function ($input) {
+                $dateTime = new \DateTime();
+                $input['stock'] = intval($input['stock']);
+                $input['price'] = intval($input['price']);
+                $input['discontinued'] =
+                    ($input['discontinued'] === 'yes')?$dateTime:null;
+                return $input;
+            }
+        );
+        $result = $workflow
             ->addStep($mapping)
             ->addStep($converterStep)
-            ->addStep($filterStep)
-            ->addWriter(new DoctrineWriter($em, 'AppBundle:Product'))
             ->process();
         
-//        if ($csvValidator->isValid()) {
-//            $em->getConnection()->beginTransaction();
-//            try {
-//                $products = $parser->parse($reader);
-//
-//                if ($input->getOption('test')) {
-//                    $output->writeln(
-//                        'Running in test mode. No changes will be made in database.'
-//                    );
-//                } else {
-//                    $writer = new PersistEntities($em, 'AppBundle:Product');
-//                    $writer->writeItem($products->getCorrect());
-//                    $writer->flush();
-//                }
-//                $em->getConnection()->commit();
-//            } catch (Exception $e) {
-//                $em->getConnection()->rollBack();
-//                throw $e;
-//            }
-//
-//            $logger->logWork($output, $products);
-//        } else {
-//            $output->writeln($csvValidator->getMessage());
-//        }
+        if ($csvValidator->isValid()) {
+            $em->getConnection()->beginTransaction();
+            try {
+                $products = $filter->filter($result, $errors);
+
+                if ($input->getOption('test')) {
+                    $output->writeln(
+                        'Running in test mode. No changes will be made in database.'
+                    );
+                } else {
+                    $writer = new PersistEntities($em, 'AppBundle:Product');
+                    $writer->writeItem($products->getCorrect());
+                    $writer->flush();
+                }
+                $em->getConnection()->commit();
+            } catch (Exception $e) {
+                $em->getConnection()->rollBack();
+                throw $e;
+            }
+
+            $logger->logWork($output, $products);
+        } else {
+            $output->writeln($csvValidator->getMessage());
+        }
     }
 
-    function discontinuedConverter($discontinued)
+    static function productConverter($input)
     {
         $dateTime = new \DateTime();
-        if ($discontinued === 'yes') {
-            return $dateTime;
-        } else {
-            return null;
-        }
+        $input['stock'] = intval($input['stock']);
+        $input['price'] = intval($input['price']);
+        $input['discontinued'] = ($input['discontinued'] === 'yes')?$dateTime:null;
+        return $input;
     }
 }

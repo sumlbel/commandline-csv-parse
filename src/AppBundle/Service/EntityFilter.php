@@ -9,18 +9,18 @@ use Ddeboer\DataImport\Writer\DoctrineWriter;
 use Doctrine\ORM\EntityManager;
 
 /**
- * Class CsvParser
+ * Class EntityFilter
  *
  * @package AppBundle\Service
  */
-class CsvParser
+class EntityFilter
 {
 
     private $headers;
     private $validator;
 
     /**
-     * CsvParser constructor.
+     * EntityFilter constructor.
      *
      * @param array $headers array of headers
      */
@@ -39,11 +39,11 @@ class CsvParser
      *
      * @return ParsedProducts
      */
-    public function parse($reader): ParsedProducts
+    public function filter($result, $csvErrors): ParsedProducts
     {
         $products = new ParsedProducts();
 
-        foreach ($reader as $line) {
+        foreach ($result as $line) {
             $product = $this->setNewProduct($line);
             $errors = $this->validator->validate($product);
             if (!$errors->has(0)) {
@@ -55,7 +55,7 @@ class CsvParser
         }
         $products->setSkipping(
             array_merge(
-                $reader->getErrors(),
+                $csvErrors,
                 $products->getSkipping()
             )
         );
@@ -77,15 +77,12 @@ class CsvParser
             $str = mb_convert_encoding($str, 'UTF-8');
         }
         $product = new Product();
-        $product->setProductCode($productData[$this->headers['code']]);
-        $product->setProductName($productData[$this->headers['name']]);
-        $product->setProductDesc($productData[$this->headers['description']]);
-        $product->setStock(intval($productData[$this->headers['stock']]));
-        $product->setPrice(floatval($productData[$this->headers['price']]));
-        $dateTime = new \DateTime();
-        if ($productData[$this->headers['discontinued']] === 'yes') {
-            $product->setDiscontinued($dateTime);
-        }
+        $product->setProductCode($productData['productCode']);
+        $product->setProductName($productData['productName']);
+        $product->setProductDesc($productData['productDesc']);
+        $product->setStock($productData['stock']);
+        $product->setPrice($productData['price']);
+        $product->setDiscontinued($productData['discontinued']);
         return $product;
     }
 }

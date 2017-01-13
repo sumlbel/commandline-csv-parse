@@ -9,7 +9,7 @@
 namespace Tests\AppBundle\Service;
 
 
-use AppBundle\Service\CsvParser;
+use AppBundle\Service\EntityFilter;
 use AppBundle\Service\CsvValidator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -28,12 +28,12 @@ class CsvParserTest extends KernelTestCase
         $this->headers = $this->container->getParameter('product.headers');
         $this->validator = $this->container->get('validator');
         $this->csvValidator = new CsvValidator($this->headers);
-        $this->parser = new CsvParser($this->headers, $this->validator);
+        $this->parser = new EntityFilter($this->headers, $this->validator);
     }
     /**
      * Test parsing correct csv file
      *
-     * @covers CsvParser::parse()
+     * @covers EntityFilter::parse()
      *
      * @return void
      */
@@ -58,7 +58,7 @@ class CsvParserTest extends KernelTestCase
     /**
      * Test creation of new product
      *
-     * @covers CsvParser::setNewProduct()
+     * @covers EntityFilter::setNewProduct()
      *
      * @return void
      */
