@@ -2,7 +2,6 @@
 
 namespace AppBundle\Service;
 
-use AppBundle\Additional\ParsedProducts;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
@@ -16,30 +15,44 @@ class Logger
     /**
      * Log work to Output Interface
      *
-     * @param OutputInterface $output   OutputInterface object
-     * @param ParsedProducts  $products ParsedProducts object
+     * @param OutputInterface $output       OutputInterface object
+     * @param int             $processed    Number of products passed to writer
+     * @param array           $csvErrors    Failed to read lines
+     * @param array           $insertErrors Failed to insert lines
      *
      * @return void
      */
-    public function logWork(OutputInterface $output, ParsedProducts $products)
+    public function logWork($output, $processed, $csvErrors, $insertErrors)
     {
         $output->writeln(
-            '<info>'.
-            $products->getCountProcessed().
-            ' product(s) have been processed</info>'
+            ($processed+count($csvErrors)).
+            ' product(s) have been processed'
         );
         $output->writeln(
             '<info>'.
-            count($products->getCorrect()).
+            ($processed-count($insertErrors)).
             ' product(s) have been correctly added</info>'
         );
         $output->writeln(
             '<comment>'.
-            count($products->getSkipping()).
+            (count($insertErrors)+count($csvErrors)).
             ' line(s) have been skipped: </comment>'
         );
-        foreach ($products->getSkipping() as $productData) {
-            $output->writeln('<comment>'.implode(' ', $productData).'</comment>');
+        $output->writeln('Failed to read:');
+        foreach ($csvErrors as $error) {
+            $output->writeln('<comment>'.implode(' ', $error).'</comment>');
+        }
+        $output->writeln('Failed to insert:');
+        foreach ($insertErrors as $error) {
+            $output->writeln(
+                '<comment>'.
+                $error['productCode'].' '.
+                $error['productName'].' '.
+                $error['productDesc'].' '.
+                $error['stock'].' '.
+                $error['price'].
+                '</comment>'
+            );
         }
     }
 }

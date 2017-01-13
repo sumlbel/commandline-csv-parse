@@ -2,22 +2,18 @@
 
 namespace AppBundle\Command;
 
-use AppBundle\AppBundle;
-use AppBundle\Service\PersistEntities;
-use Ddeboer\DataImport\Filter\ValidatorFilter;
+use AppBundle\Writer\ProductWriter;
+use Ddeboer\DataImport\Reader;
 use Ddeboer\DataImport\Step\ConverterStep;
-use Ddeboer\DataImport\Step\FilterStep;
 use Ddeboer\DataImport\Step\MappingStep;
-use Ddeboer\DataImport\ValueConverter\ArrayValueConverterMap;
 use Ddeboer\DataImport\Workflow\StepAggregator;
-use Ddeboer\DataImport\Writer\DoctrineWriter;
+use Doctrine\ORM\EntityManager;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Workflow\Workflow;
 
 /**
  * Class CsvParseCommand
@@ -67,12 +63,32 @@ class CsvParseCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $csvValidator = $this->getContainer()->get('app.csv_validator');
-        $filter = $this->getContainer()->get('app.entity_filter');
-        $logger = $this->getContainer()->get('app.logger');
-        $headers = $this->getContainer()->getParameter('product.headers');
 
         $reader = $csvValidator->validate($input->getArgument('file_path'));
-        $validator = $this->getContainer()->get('validator');
+        
+        if ($csvValidator->isValid()) {
+            $isTest = $input->getOption('test');
+            if ($isTest) {
+                $output->writeln(
+                    'Running in test mode. No changes will be made in database.'
+                );
+            }
+
+            $this->runWorkflow($output, $reader, $isTest);
+        } else {
+            $output->writeln($csvValidator->getMessage());
+        }
+    }
+
+    /**
+     * Set mapping
+     *
+     * @param array $headers
+     *
+     * @return MappingStep
+     */
+    protected function setMapping($headers): MappingStep
+    {
         $mapping = new MappingStep();
         $mapping->map('['.$headers['code'].']', '[productCode]');
         $mapping->map('['.$headers['name'].']', '[productName]');
@@ -81,57 +97,89 @@ class CsvParseCommand extends ContainerAwareCommand
         $mapping->map('['.$headers['price'].']', '[price]');
         $mapping->map('['.$headers['discontinued'].']', '[discontinued]');
 
-        $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $workflow = new StepAggregator($reader);
-        $errors = $reader->getErrors();
+        return $mapping;
+    }
+
+    /**
+     * Set converter
+     *
+     * @return ConverterStep
+     */
+    protected function setConverterStep(): ConverterStep
+    {
         $converterStep = new ConverterStep();
         $converterStep->add(
             function ($input) {
                 $dateTime = new \DateTime();
                 $input['stock'] = intval($input['stock']);
-                $input['price'] = intval($input['price']);
+                $input['price'] = floatval($input['price']);
                 $input['discontinued'] =
-                    ($input['discontinued'] === 'yes')?$dateTime:null;
+                    ($input['discontinued'] === 'yes') ? $dateTime : null;
+
                 return $input;
             }
         );
-        $result = $workflow
-            ->addStep($mapping)
-            ->addStep($converterStep)
-            ->process();
-        
-        if ($csvValidator->isValid()) {
-            $em->getConnection()->beginTransaction();
-            try {
-                $products = $filter->filter($result, $errors);
 
-                if ($input->getOption('test')) {
-                    $output->writeln(
-                        'Running in test mode. No changes will be made in database.'
-                    );
-                } else {
-                    $writer = new PersistEntities($em, 'AppBundle:Product');
-                    $writer->writeItem($products->getCorrect());
-                    $writer->flush();
-                }
-                $em->getConnection()->commit();
-            } catch (Exception $e) {
-                $em->getConnection()->rollBack();
-                throw $e;
-            }
-
-            $logger->logWork($output, $products);
-        } else {
-            $output->writeln($csvValidator->getMessage());
-        }
+        return $converterStep;
     }
 
-    static function productConverter($input)
+    /**
+     * Set writer
+     *
+     * @param EntityManager $em
+     * @param bool          $isTest
+     *
+     * @return ProductWriter
+     */
+    protected function setWriter($em, $isTest): ProductWriter
     {
-        $dateTime = new \DateTime();
-        $input['stock'] = intval($input['stock']);
-        $input['price'] = intval($input['price']);
-        $input['discontinued'] = ($input['discontinued'] === 'yes')?$dateTime:null;
-        return $input;
+        $writer = new ProductWriter($em, 'AppBundle:Product');
+        $validator = $this->getContainer()->get('validator');
+        $writer->setParameters($validator, $isTest);
+
+        return $writer;
+    }
+
+    /**
+     * Run the writer workflow
+     *
+     * @param OutputInterface $output
+     * @param Reader          $reader
+     * @param bool            $isTest Is running in test mode
+     *
+     * @throws Exception
+     *
+     * @return void
+     */
+    protected function runWorkflow(OutputInterface $output, $reader, $isTest)
+    {
+        $headers = $this->getContainer()->getParameter('product.headers');
+
+        $workflow = new StepAggregator($reader);
+        $mapping = $this->setMapping($headers);
+        $converterStep = $this->setConverterStep();
+
+        $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $em->getConnection()->beginTransaction();
+        try {
+            $writer = $this->setWriter($em, $isTest);
+            $result = $workflow
+                ->addStep($mapping)
+                ->addStep($converterStep)
+                ->addWriter($writer)
+                ->process();
+            $em->getConnection()->commit();
+        } catch (Exception $e) {
+            $em->getConnection()->rollBack();
+            throw $e;
+        }
+
+        $logger = $this->getContainer()->get('app.logger');
+        $logger->logWork(
+            $output,
+            $result->getSuccessCount(),
+            $reader->getErrors(),
+            $writer->getErrors()
+        );
     }
 }
